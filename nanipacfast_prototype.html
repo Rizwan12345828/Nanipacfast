@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NaniPacFast | Cloud PACS Prototype</title>
+<style>
+:root{--bg:#0b1220;--panel:#121c2e;--panel2:#17243a;--line:#2a3b55;--text:#e8eef8;--muted:#94a6bf;--cyan:#46d7d0;--blue:#6ca7ff;--green:#54d69a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#0d1728;position:sticky;top:0;z-index:2}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;letter-spacing:.2px}.logo{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#06101b;border-radius:12px;padding:9px;font-weight:900}
+.pill{border:1px solid var(--line);border-radius:999px;padding:6px 11px;color:var(--muted);font-size:12px}
+main{padding:24px;max-width:1500px;margin:auto}.welcome{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}.welcome h1{margin:0 0 4px;font-size:26px}.muted{color:var(--muted)}.actions{display:flex;gap:9px;flex-wrap:wrap}
+button{background:var(--cyan);color:#06101b;border:0;border-radius:9px;padding:10px 14px;font-weight:750;cursor:pointer}button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px}.stat label{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:25px;display:block;margin-top:5px}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);gap:16px}.card h2{font-size:16px;margin:0 0 14px}.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}input,select,textarea{background:#0b1424;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;width:100%;font:inherit}input::placeholder,textarea::placeholder{color:#71839d}.toolbar input{flex:1;min-width:170px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:600;padding:11px 8px;border-bottom:1px solid var(--line)}td{padding:12px 8px;border-bottom:1px solid #213047}tr.study{cursor:pointer}tr.study:hover{background:#182740}.status{color:var(--green);font-size:11px;border:1px solid #285c4b;padding:4px 7px;border-radius:999px;white-space:nowrap}
+.viewer{height:260px;background:#03070d;border:1px solid #26364d;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:12px}.viewer .cross{position:absolute;width:1px;height:100%;background:#172333;left:50%}.viewer .cross:after{content:"";position:absolute;height:1px;width:100vw;background:#172333;top:50%;left:-50vw}.viewer p{z-index:1;text-align:center;color:#8293a9;font-size:12px}.viewer b{display:block;color:#c9d7e9;font-size:16px;margin-bottom:6px}.field{margin:10px 0}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}.footer{margin-top:18px;color:#7587a0;font-size:12px;text-align:center}
+.notice{padding:11px 13px;border:1px solid #66552d;background:#2a2417;color:#f1d89a;border-radius:9px;font-size:12px;margin-bottom:16px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}main{padding:14px}.welcome{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){header{padding:0 12px}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:21px}.twocol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span class="logo">NP</span> NaniPacFast <span class="pill">CLOUD PACS • DEMO</span></div><div class="pill">Prototype v0.1</div></header>
+<main>
+<div class="welcome"><div><h1>Radiology Workspace</h1><div class="muted">Study worklist, image viewer preview and structured reporting</div></div><div class="actions"><button class="secondary" onclick="document.getElementById('upload').click()">＋ Import demo file</button><button onclick="newStudy()">＋ New study</button><input id="upload" type="file" accept=".dcm,.dicom,.png,.jpg,.jpeg" hidden onchange="importFile(this.files[0])"></div></div>
+<div class="notice"><b>Prototype only:</b> This is a local UI demonstration. It does not upload/store medical data in the cloud, parse DICOM pixels, authenticate users, or provide clinical-grade security. Use synthetic/demo data only.</div>
+<div class="stats"><div class="stat"><label>Studies in this demo</label><strong id="count">3</strong></div><div class="stat"><label>Awaiting report</label><strong id="pending">2</strong></div><div class="stat"><label>Modality types</label><strong>4</strong></div><div class="stat"><label>Cloud status</label><strong style="font-size:17px;color:var(--cyan)">Not connected</strong></div></div>
+<div class="layout">
+<section class="card"><h2>Study Worklist</h2><div class="toolbar"><input id="search" placeholder="Search patient, ID, modality…" oninput="render()"><select id="modality" onchange="render()" style="max-width:135px"><option value="">All modalities</option><option>CT</option><option>MRI</option><option>CR</option><option>US</option></select></div>
+<div style="overflow:auto"><table><thead><tr><th>Patient / ID</th><th>Modality</th><th>Study</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section class="card"><h2>Image Viewer & Report Editor</h2><div class="viewer"><div class="cross"></div><p><b id="viewerTitle">No study selected</b><span id="viewerSub">Select a demo study from the worklist</span><br><br>Image rendering requires a connected DICOM viewer</p></div>
+<div class="twocol"><div class="field"><label>Patient name</label><input id="patient" placeholder="Selected patient" readonly></div><div class="field"><label>Study / accession</label><input id="accession" placeholder="Study ID" readonly></div></div>
+<div class="field"><label>Findings</label><textarea id="findings" rows="4" placeholder="Enter radiology findings…"></textarea></div><div class="field"><label>Impression</label><textarea id="impression" rows="3" placeholder="Enter impression…"></textarea></div>
+<div class="actions"><button onclick="saveReport()">Save draft</button><button class="secondary" onclick="exportReport()">Export report (.txt)</button></div><div id="feedback" class="muted" style="margin-top:10px;font-size:12px"></div>
+</section></div><div class="footer">NaniPacFast • Cloud-ready concept • No patient data should be entered into this demo.</div>
+</main>
+<script>
+let studies=[
+{id:"NP-1001",name:"Demo Patient Alpha",mod:"CT",desc:"CT Head • Demo",status:"Awaiting report",findings:"",impression:""},
+{id:"NP-1002",name:"Demo Patient Bravo",mod:"MRI",desc:"MRI Brain • Demo",status:"Awaiting report",findings:"",impression:""},
+{id:"NP-1003",name:"Demo Patient Charlie",mod:"CR",desc:"Chest X-ray • Demo",status:"Draft saved",findings:"",impression:""}
+];let selected=null;
+function render(){let q=document.getElementById('search').value.toLowerCase(),m=document.getElementById('modality').value;let filtered=studies.filter(s=>(!m||s.mod===m)&&(s.name+s.id+s.mod+s.desc).toLowerCase().includes(q));document.getElementById('rows').innerHTML=filtered.map(s=>`<tr class="study" onclick="selectStudy('${s.id}')"><td><b>${s.name}</b><br><span class="muted">${s.id}</span></td><td>${s.mod}</td><td>${s.desc}</td><td><span class="status">${s.status}</span></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No matching studies</td></tr>';document.getElementById('count').textContent=studies.length;document.getElementById('pending').textContent=studies.filter(s=>s.status==="Awaiting report").length}
+function selectStudy(id){selected=studies.find(s=>s.id===id);document.getElementById('viewerTitle').textContent=selected.desc;document.getElementById('viewerSub').textContent=selected.name+" • "+selected.id;document.getElementById('patient').value=selected.name;document.getElementById('accession').value=selected.id;document.getElementById('findings').value=selected.findings;document.getElementById('impression').value=selected.impression;document.getElementById('feedback').textContent="Selected demo study. No diagnostic image is loaded."}
+function saveReport(){if(!selected){alert("Select a study first.");return}selected.findings=document.getElementById('findings').value;selected.impression=document.getElementById('impression').value;selected.status="Draft saved";render();document.getElementById('feedback').textContent="Draft saved in this browser session only (not cloud storage)."}
+function exportReport(){if(!selected){alert("Select a study first.");return}let t=`NaniPacFast — DEMO REPORT\nPatient: ${selected.name}\nStudy ID: ${selected.id}\nStudy: ${selected.desc}\n\nFINDINGS\n${document.getElementById('findings').value}\n\nIMPRESSION\n${document.getElementById('impression').value}\n\nDEMO ONLY — Not a diagnostic report.`;let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download=selected.id+"-demo-report.txt";a.click();URL.revokeObjectURL(a.href)}
+function newStudy(){let n=studies.length+1001,id="NP-"+n;studies.unshift({id,name:"New Demo Patient",mod:"CT",desc:"New Study • Demo",status:"Awaiting report",findings:"",impression:""});render();selectStudy(id)}
+function importFile(f){if(!f)return;alert("File selected: "+f.name+"\nThis prototype does not decode or upload files. Do not import real patient data.");}
+render();
+</script>
+</body></html>
